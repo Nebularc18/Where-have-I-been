@@ -26,6 +26,16 @@ class DomainModelTest {
     }
 
     @Test
+    fun toTravelStats_returnsZeroPercentagesForEmptyInput() {
+        val stats = emptyList<Country>().toTravelStats()
+
+        assertThat(stats.totalCountries).isEqualTo(0)
+        assertThat(stats.visitedCountries).isEqualTo(0)
+        assertThat(stats.visitedPercentage).isEqualTo(0f)
+        assertThat(stats.continents).isEmpty()
+    }
+
+    @Test
     fun matchesQuery_checksNameIsoCapitalAndContinent() {
         val sweden = countries.first()
 

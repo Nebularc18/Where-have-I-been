@@ -16,7 +16,8 @@ class DefaultAppContainer(context: Context) : AppContainer {
             context,
             AppDatabase::class.java,
             "where_have_i_been.db"
-        ).build()
+        ).addMigrations(*AppDatabase.ALL_MIGRATIONS)
+            .build()
     }
 
     override val countryRepository: CountryRepository by lazy {

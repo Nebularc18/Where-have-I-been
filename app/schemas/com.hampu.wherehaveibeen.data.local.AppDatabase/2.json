@@ -1,0 +1,70 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "816f3655d59f71925136c69ebde17734",
+    "entities": [
+      {
+        "tableName": "countries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`isoCode` TEXT NOT NULL, `name` TEXT NOT NULL, `continent` TEXT NOT NULL, `flagEmoji` TEXT NOT NULL, `capital` TEXT NOT NULL, `isVisited` INTEGER NOT NULL, `isWishlisted` INTEGER NOT NULL, PRIMARY KEY(`isoCode`))",
+        "fields": [
+          {
+            "fieldPath": "isoCode",
+            "columnName": "isoCode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "continent",
+            "columnName": "continent",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "flagEmoji",
+            "columnName": "flagEmoji",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capital",
+            "columnName": "capital",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isVisited",
+            "columnName": "isVisited",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isWishlisted",
+            "columnName": "isWishlisted",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "isoCode"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '816f3655d59f71925136c69ebde17734')"
+    ]
+  }
+}

@@ -35,14 +35,19 @@ fun List<Country>.toTravelStats(): TravelStats {
                 continent = continent,
                 visited = visited,
                 total = countries.size,
-                percentage = visited.toFloat() / countries.size.toFloat()
+                percentage = ratioOrZero(visited, countries.size)
             )
         }
 
     return TravelStats(
         totalCountries = size,
         visitedCountries = visitedCountries,
-        visitedPercentage = visitedCountries.toFloat() / size.toFloat(),
+        visitedPercentage = ratioOrZero(visitedCountries, size),
         continents = totalsByContinent
     )
+}
+
+private fun ratioOrZero(numerator: Int, denominator: Int): Float {
+    if (denominator <= 0) return 0f
+    return numerator.toFloat() / denominator.toFloat()
 }
