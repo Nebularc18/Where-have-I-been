@@ -29,8 +29,8 @@ import com.hampu.wherehaveibeen.ui.theme.LocalAppColorTokens
 @Composable
 fun CountryRow(
     country: Country,
-    onVisitedToggle: (String) -> Unit,
-    onWishlistToggle: (String) -> Unit,
+    onVisitedChange: (String, Boolean) -> Unit,
+    onWishlistChange: (String, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val appColors = LocalAppColorTokens.current
@@ -68,7 +68,7 @@ fun CountryRow(
                 )
             }
             IconButton(
-                onClick = { onVisitedToggle(country.isoCode) },
+                onClick = { onVisitedChange(country.isoCode, !country.isVisited) },
                 modifier = Modifier.semantics {
                     contentDescription = "Toggle visited for ${country.name}"
                 }
@@ -84,7 +84,7 @@ fun CountryRow(
                 )
             }
             IconButton(
-                onClick = { onWishlistToggle(country.isoCode) },
+                onClick = { onWishlistChange(country.isoCode, !country.isWishlisted) },
                 modifier = Modifier.semantics {
                     contentDescription = "Toggle wishlist for ${country.name}"
                 }

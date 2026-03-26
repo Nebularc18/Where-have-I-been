@@ -48,15 +48,15 @@ class WishlistViewModel(
         searchQuery.value = query
     }
 
-    fun toggleVisited(isoCode: String) {
+    fun setVisited(isoCode: String, visited: Boolean) {
         viewModelScope.launch {
-            repository.toggleVisited(isoCode)
+            repository.setVisited(isoCode, visited)
         }
     }
 
-    fun toggleWishlisted(isoCode: String) {
+    fun setWishlisted(isoCode: String, wishlisted: Boolean) {
         viewModelScope.launch {
-            repository.toggleWishlisted(isoCode)
+            repository.setWishlisted(isoCode, wishlisted)
         }
     }
 }

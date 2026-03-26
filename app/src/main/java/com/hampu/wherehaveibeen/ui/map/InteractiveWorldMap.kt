@@ -1,8 +1,8 @@
 package com.hampu.wherehaveibeen.ui.map
 
+import android.graphics.Matrix as AndroidMatrix
 import android.graphics.RectF
 import android.graphics.Region
-import android.graphics.Matrix as AndroidMatrix
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -23,15 +23,16 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.awaitPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.onSizeChanged
@@ -44,6 +45,7 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 private data class RenderableCountry(
     val id: String,
@@ -106,7 +108,7 @@ fun InteractiveWorldMap(
             modifier
                 .clipToBounds()
                 .onSizeChanged { canvasSize = it }
-                .pointerInput(renderableCountries, interactive, canvasSize) {
+                .pointerInput(renderableCountries, canvasSize, scale, offset) {
                     awaitEachGesture {
                         val firstDown = awaitFirstDown(requireUnconsumed = false)
                         var gestureScale = scale
@@ -260,11 +262,12 @@ private fun transformedOffset(
     pan: Offset,
     canvasSize: IntSize
 ): Offset {
+    val scaleFactor = newScale / currentScale
     val pivotX = centroid.x - canvasSize.width / 2f
     val pivotY = centroid.y - canvasSize.height / 2f
     val newOffset = Offset(
-        x = currentOffset.x * (newScale / currentScale) - pivotX * ((newScale / currentScale) - 1f) + pan.x,
-        y = currentOffset.y * (newScale / currentScale) - pivotY * ((newScale / currentScale) - 1f) + pan.y
+        x = currentOffset.x * scaleFactor - pivotX * (scaleFactor - 1f) + pan.x,
+        y = currentOffset.y * scaleFactor - pivotY * (scaleFactor - 1f) + pan.y
     )
     return clampOffset(newOffset, newScale, canvasSize)
 }
@@ -294,7 +297,6 @@ private fun findCountryAtPoint(
             region.contains(point.x.roundToInt(), point.y.roundToInt())
         }
     }
-
     if (exactMatch != null) return exactMatch
 
     return countries.asReversed()
@@ -302,11 +304,7 @@ private fun findCountryAtPoint(
             val distance = country.pathBounds.minOfOrNull { bounds ->
                 distanceToRect(point, bounds)
             } ?: return@mapNotNull null
-            if (distance <= fallbackRadius) {
-                country to distance
-            } else {
-                null
-            }
+            if (distance <= fallbackRadius) country to distance else null
         }
         .minByOrNull { it.second }
         ?.first
@@ -355,7 +353,7 @@ private fun distanceToRect(point: Offset, rect: RectF): Float {
         point.y > rect.bottom -> point.y - rect.bottom
         else -> 0f
     }
-    return kotlin.math.sqrt(dx * dx + dy * dy)
+    return sqrt(dx * dx + dy * dy)
 }
 
 private const val ANTARCTICA_ID = "AQ"
