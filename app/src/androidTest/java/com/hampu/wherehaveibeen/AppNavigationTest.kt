@@ -11,12 +11,15 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hampu.wherehaveibeen.data.repository.CountryRepository
+import com.hampu.wherehaveibeen.data.settings.AppSettings
+import com.hampu.wherehaveibeen.data.settings.AppSettingsRepository
 import com.hampu.wherehaveibeen.domain.model.Country
 import com.hampu.wherehaveibeen.domain.model.TravelStats
 import com.hampu.wherehaveibeen.domain.model.toTravelStats
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,11 +30,15 @@ class AppNavigationTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     private val repository = FakeCountryRepository()
+    private val appSettingsRepository = FakeAppSettingsRepository()
 
     @Test
     fun bottomNavigationAndCountryFlowsWork() {
         composeRule.setContent {
-            WhereHaveIBeenApp(repository = repository)
+            WhereHaveIBeenApp(
+                repository = repository,
+                appSettingsRepository = appSettingsRepository
+            )
         }
 
         composeRule.onNodeWithText("List").performClick()
@@ -77,26 +84,6 @@ private class FakeCountryRepository : CountryRepository {
 
     override fun observeStats(): Flow<TravelStats> = countries.map(List<Country>::toTravelStats)
 
-    override suspend fun toggleVisited(isoCode: String) {
-        countries.value = countries.value.map { country ->
-            if (country.isoCode == isoCode.uppercase()) {
-                country.copy(isVisited = !country.isVisited)
-            } else {
-                country
-            }
-        }
-    }
-
-    override suspend fun toggleWishlisted(isoCode: String) {
-        countries.value = countries.value.map { country ->
-            if (country.isoCode == isoCode.uppercase()) {
-                country.copy(isWishlisted = !country.isWishlisted)
-            } else {
-                country
-            }
-        }
-    }
-
     override suspend fun setVisited(isoCode: String, visited: Boolean) {
         countries.value = countries.value.map { country ->
             if (country.isoCode == isoCode.uppercase()) country.copy(isVisited = visited) else country
@@ -110,4 +97,34 @@ private class FakeCountryRepository : CountryRepository {
     }
 
     override suspend fun seedIfNeeded() = Unit
+}
+
+private class FakeAppSettingsRepository : AppSettingsRepository {
+    private val settings = MutableStateFlow(AppSettings())
+
+    override fun observeSettings(): Flow<AppSettings> = settings
+
+    override suspend fun setUseDarkTheme(enabled: Boolean) {
+        settings.update { it.copy(useDarkTheme = enabled) }
+    }
+
+    override suspend fun setAccentColor(color: Int) {
+        settings.update { it.copy(accentColor = androidx.compose.ui.graphics.Color(color)) }
+    }
+
+    override suspend fun setVisitedColor(color: Int) {
+        settings.update { it.copy(visitedColor = androidx.compose.ui.graphics.Color(color)) }
+    }
+
+    override suspend fun setWishlistColor(color: Int) {
+        settings.update { it.copy(wishlistColor = androidx.compose.ui.graphics.Color(color)) }
+    }
+
+    override suspend fun setMapBaseColor(color: Int) {
+        settings.update { it.copy(mapBaseColor = androidx.compose.ui.graphics.Color(color)) }
+    }
+
+    override suspend fun resetColors() {
+        settings.value = AppSettings()
+    }
 }

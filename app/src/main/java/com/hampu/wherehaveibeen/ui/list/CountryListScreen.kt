@@ -34,8 +34,8 @@ fun CountryListScreen(
     CountryListScreen(
         uiState = uiState,
         onSearchQueryChange = viewModel::onSearchQueryChange,
-        onVisitedToggle = viewModel::toggleVisited,
-        onWishlistToggle = viewModel::toggleWishlisted,
+        onVisitedChange = viewModel::setVisited,
+        onWishlistChange = viewModel::setWishlisted,
         modifier = modifier
     )
 }
@@ -44,8 +44,8 @@ fun CountryListScreen(
 fun CountryListScreen(
     uiState: CountryListUiState,
     onSearchQueryChange: (String) -> Unit,
-    onVisitedToggle: (String) -> Unit,
-    onWishlistToggle: (String) -> Unit,
+    onVisitedChange: (String, Boolean) -> Unit,
+    onWishlistChange: (String, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (uiState.isLoading) {
@@ -112,8 +112,8 @@ fun CountryListScreen(
             ) { country ->
                 CountryRow(
                     country = country,
-                    onVisitedToggle = onVisitedToggle,
-                    onWishlistToggle = onWishlistToggle
+                    onVisitedChange = onVisitedChange,
+                    onWishlistChange = onWishlistChange
                 )
             }
         }

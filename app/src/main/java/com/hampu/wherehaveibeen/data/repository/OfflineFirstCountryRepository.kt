@@ -37,18 +37,6 @@ class OfflineFirstCountryRepository(
         return observeAllCountries().map(List<Country>::toTravelStats)
     }
 
-    override suspend fun toggleVisited(isoCode: String) = withContext(ioDispatcher) {
-        val normalized = normalizeCountryCode(isoCode)
-        val country = countryDao.getCountryByIsoCode(normalized) ?: return@withContext
-        countryDao.setVisited(normalized, !country.isVisited)
-    }
-
-    override suspend fun toggleWishlisted(isoCode: String) = withContext(ioDispatcher) {
-        val normalized = normalizeCountryCode(isoCode)
-        val country = countryDao.getCountryByIsoCode(normalized) ?: return@withContext
-        countryDao.setWishlisted(normalized, !country.isWishlisted)
-    }
-
     override suspend fun setVisited(isoCode: String, visited: Boolean) = withContext(ioDispatcher) {
         val normalized = normalizeCountryCode(isoCode)
         if (countryDao.getCountryByIsoCode(normalized) != null) {

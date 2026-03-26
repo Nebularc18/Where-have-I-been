@@ -17,7 +17,7 @@ import org.junit.Test
 
 class OfflineFirstCountryRepositoryTest {
     @Test
-    fun seedIfNeeded_populatesDaoAndToggleMethodsUpdateFlags() = runBlocking {
+    fun seedIfNeeded_populatesDaoAndSetMethodsUpdateFlags() = runBlocking {
         val dao = FakeCountryDao()
         val repository = OfflineFirstCountryRepository(
             countryDao = dao,
@@ -31,8 +31,8 @@ class OfflineFirstCountryRepositoryTest {
         )
 
         repository.seedIfNeeded()
-        repository.toggleVisited("se")
-        repository.toggleWishlisted("JP")
+        repository.setVisited("se", true)
+        repository.setWishlisted("JP", true)
 
         val countries = repository.observeAllCountries().first()
 

@@ -9,8 +9,6 @@ interface CountryRepository {
     fun observeVisitedCountries(): Flow<List<Country>>
     fun observeWishlistedCountries(): Flow<List<Country>>
     fun observeStats(): Flow<TravelStats>
-    suspend fun toggleVisited(isoCode: String)
-    suspend fun toggleWishlisted(isoCode: String)
     suspend fun setVisited(isoCode: String, visited: Boolean)
     suspend fun setWishlisted(isoCode: String, wishlisted: Boolean)
     suspend fun seedIfNeeded()
