@@ -42,6 +42,13 @@
     "capital": "Saint John's"
   },
   {
+    "isoCode": "AQ",
+    "name": "Antarctica",
+    "continent": "Antarctica",
+    "flagEmoji": "🇦🇶",
+    "capital": "No capital"
+  },
+  {
     "isoCode": "AR",
     "name": "Argentina",
     "continent": "South America",

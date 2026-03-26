@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import com.hampu.wherehaveibeen.data.local.AppDatabase
 import com.hampu.wherehaveibeen.data.local.CountryAssetDataSource
+import com.hampu.wherehaveibeen.data.settings.AppSettingsRepository
+import com.hampu.wherehaveibeen.data.settings.OfflineFirstAppSettingsRepository
 import kotlinx.coroutines.Dispatchers
 
 interface AppContainer {
     val countryRepository: CountryRepository
+    val appSettingsRepository: AppSettingsRepository
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
@@ -26,5 +29,9 @@ class DefaultAppContainer(context: Context) : AppContainer {
             assetDataSource = CountryAssetDataSource(context),
             ioDispatcher = Dispatchers.IO
         )
+    }
+
+    override val appSettingsRepository: AppSettingsRepository by lazy {
+        OfflineFirstAppSettingsRepository.fromContext(context)
     }
 }

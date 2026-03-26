@@ -140,6 +140,11 @@ fun StatsScreen(
                         text = "${continent.visited} / ${continent.total} visited",
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    Text(
+                        text = "${(continent.percentage * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     LinearProgressIndicator(
                         progress = { continent.percentage },
                         modifier = Modifier.fillMaxWidth()

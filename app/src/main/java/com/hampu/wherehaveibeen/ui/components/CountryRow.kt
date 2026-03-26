@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.hampu.wherehaveibeen.domain.model.Country
+import com.hampu.wherehaveibeen.ui.theme.LocalAppColorTokens
 
 @Composable
 fun CountryRow(
@@ -32,6 +33,8 @@ fun CountryRow(
     onWishlistToggle: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val appColors = LocalAppColorTokens.current
+
     Card(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -54,7 +57,7 @@ fun CountryRow(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "${country.isoCode} • ${country.capital}",
+                    text = "${country.isoCode} - ${country.capital}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -77,7 +80,7 @@ fun CountryRow(
                         Icons.Outlined.CheckCircleOutline
                     },
                     contentDescription = null,
-                    tint = if (country.isVisited) MaterialTheme.colorScheme.primary else Color.Gray
+                    tint = if (country.isVisited) appColors.visited else Color.Gray
                 )
             }
             IconButton(
@@ -93,7 +96,7 @@ fun CountryRow(
                         Icons.Outlined.FavoriteBorder
                     },
                     contentDescription = null,
-                    tint = if (country.isWishlisted) MaterialTheme.colorScheme.tertiary else Color.Gray
+                    tint = if (country.isWishlisted) appColors.wishlist else Color.Gray
                 )
             }
         }
