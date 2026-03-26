@@ -42,9 +42,15 @@ class MapViewModel(
         }
     }
 
-    fun toggleVisited(isoCode: String) {
+    fun setVisited(isoCode: String, visited: Boolean) {
         viewModelScope.launch {
-            repository.toggleVisited(isoCode)
+            repository.setVisited(isoCode, visited)
+        }
+    }
+
+    fun setWishlisted(isoCode: String, wishlisted: Boolean) {
+        viewModelScope.launch {
+            repository.setWishlisted(isoCode, wishlisted)
         }
     }
 }

@@ -21,6 +21,9 @@ class DomainModelTest {
         assertThat(stats.totalCountries).isEqualTo(3)
         assertThat(stats.visitedCountries).isEqualTo(2)
         assertThat(stats.visitedPercentage).isWithin(0.001f).of(2f / 3f)
+        assertThat(stats.totalContinents).isEqualTo(2)
+        assertThat(stats.visitedContinents).isEqualTo(2)
+        assertThat(stats.visitedContinentsPercentage).isEqualTo(1f)
         assertThat(stats.continents).hasSize(2)
         assertThat(stats.continents.first { it.continent == "Europe" }.total).isEqualTo(2)
     }
@@ -32,6 +35,9 @@ class DomainModelTest {
         assertThat(stats.totalCountries).isEqualTo(0)
         assertThat(stats.visitedCountries).isEqualTo(0)
         assertThat(stats.visitedPercentage).isEqualTo(0f)
+        assertThat(stats.totalContinents).isEqualTo(0)
+        assertThat(stats.visitedContinents).isEqualTo(0)
+        assertThat(stats.visitedContinentsPercentage).isEqualTo(0f)
         assertThat(stats.continents).isEmpty()
     }
 

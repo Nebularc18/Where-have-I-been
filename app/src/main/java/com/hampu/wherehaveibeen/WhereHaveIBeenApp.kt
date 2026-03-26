@@ -17,11 +17,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hampu.wherehaveibeen.data.repository.CountryRepository
+import com.hampu.wherehaveibeen.data.settings.AppSettingsRepository
 import com.hampu.wherehaveibeen.navigation.TopLevelDestination
 import com.hampu.wherehaveibeen.ui.list.CountryListScreen
 import com.hampu.wherehaveibeen.ui.list.CountryListViewModel
 import com.hampu.wherehaveibeen.ui.map.MapScreen
 import com.hampu.wherehaveibeen.ui.map.MapViewModel
+import com.hampu.wherehaveibeen.ui.settings.SettingsScreen
+import com.hampu.wherehaveibeen.ui.settings.SettingsViewModel
 import com.hampu.wherehaveibeen.ui.stats.StatsScreen
 import com.hampu.wherehaveibeen.ui.stats.StatsViewModel
 import com.hampu.wherehaveibeen.ui.wishlist.WishlistScreen
@@ -30,10 +33,13 @@ import com.hampu.wherehaveibeen.ui.wishlist.WishlistViewModel
 @Composable
 fun WhereHaveIBeenApp(
     repository: CountryRepository,
+    appSettingsRepository: AppSettingsRepository,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
-    val factory = remember(repository) { AppViewModelFactory(repository) }
+    val factory = remember(repository, appSettingsRepository) {
+        AppViewModelFactory(repository, appSettingsRepository)
+    }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
@@ -83,6 +89,10 @@ fun WhereHaveIBeenApp(
             composable(TopLevelDestination.Wishlist.route) {
                 val viewModel: WishlistViewModel = viewModel(factory = factory)
                 WishlistScreen(viewModel = viewModel)
+            }
+            composable(TopLevelDestination.Settings.route) {
+                val viewModel: SettingsViewModel = viewModel(factory = factory)
+                SettingsScreen(viewModel = viewModel)
             }
         }
     }

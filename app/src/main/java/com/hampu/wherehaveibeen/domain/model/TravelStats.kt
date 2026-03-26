@@ -11,6 +11,9 @@ data class TravelStats(
     val totalCountries: Int,
     val visitedCountries: Int,
     val visitedPercentage: Float,
+    val totalContinents: Int,
+    val visitedContinents: Int,
+    val visitedContinentsPercentage: Float,
     val continents: List<ContinentProgress>
 ) {
     companion object {
@@ -18,6 +21,9 @@ data class TravelStats(
             totalCountries = 0,
             visitedCountries = 0,
             visitedPercentage = 0f,
+            totalContinents = 0,
+            visitedContinents = 0,
+            visitedContinentsPercentage = 0f,
             continents = emptyList()
         )
     }
@@ -39,10 +45,16 @@ fun List<Country>.toTravelStats(): TravelStats {
             )
         }
 
+    val visitedContinents = totalsByContinent.count { it.visited > 0 }
+    val totalContinents = totalsByContinent.size
+
     return TravelStats(
         totalCountries = size,
         visitedCountries = visitedCountries,
         visitedPercentage = ratioOrZero(visitedCountries, size),
+        totalContinents = totalContinents,
+        visitedContinents = visitedContinents,
+        visitedContinentsPercentage = ratioOrZero(visitedContinents, totalContinents),
         continents = totalsByContinent
     )
 }
