@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hampu.wherehaveibeen.ui.components.EmptyContent
+import com.hampu.wherehaveibeen.ui.components.HeaderHighlight
 import com.hampu.wherehaveibeen.ui.components.ScreenHeader
 
 @Composable
@@ -66,7 +67,17 @@ fun StatsScreen(
         item {
             ScreenHeader(
                 title = "Your travel stats",
-                subtitle = "Track overall coverage and progress by continent."
+                subtitle = "Track overall coverage and progress by continent.",
+                highlights = listOf(
+                    HeaderHighlight(
+                        label = "Countries",
+                        value = "${uiState.stats.visitedCountries}/${uiState.stats.totalCountries}"
+                    ),
+                    HeaderHighlight(
+                        label = "Continents",
+                        value = "${uiState.stats.visitedContinents}/${uiState.stats.totalContinents} (${(uiState.stats.visitedContinentsPercentage * 100).toInt()}%)"
+                    )
+                )
             )
         }
 

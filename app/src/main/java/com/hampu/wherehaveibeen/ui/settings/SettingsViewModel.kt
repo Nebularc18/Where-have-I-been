@@ -55,6 +55,7 @@ class SettingsViewModel(
     fun resetColors() {
         viewModelScope.launch {
             repository.resetColors()
+            repository.setUseDarkTheme(true)
         }
     }
 }
