@@ -1,12 +1,12 @@
 package com.hampu.wherehaveibeen
 
+import android.app.Application
 import com.google.common.truth.Truth.assertThat
 import com.hampu.wherehaveibeen.data.local.CountryAssetDataSource
 import com.hampu.wherehaveibeen.data.local.CountryDao
 import com.hampu.wherehaveibeen.data.local.CountryEntity
 import com.hampu.wherehaveibeen.data.local.CountrySeed
 import com.hampu.wherehaveibeen.data.repository.OfflineFirstCountryRepository
-import android.test.mock.MockContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +42,7 @@ class OfflineFirstCountryRepositoryTest {
     }
 
     private fun fakeAssetDataSource(countries: List<CountrySeed>): CountryAssetDataSource {
-        return object : CountryAssetDataSource(MockContext()) {
+        return object : CountryAssetDataSource(Application()) {
             override fun loadCountries(): List<CountrySeed> = countries
         }
     }
