@@ -16,6 +16,9 @@ data class AppColorTokens(
     val mapBase: Color
 )
 
+private const val DarkThemeMapBaseBlend = 0.22f
+private const val LightThemeMapBaseBlend = 0.58f
+
 val LocalAppColorTokens = staticCompositionLocalOf {
     AppColorTokens(
         visited = Color.Unspecified,
@@ -62,9 +65,9 @@ fun WhereHaveIBeenTheme(
             visited = settings.visitedColor,
             wishlist = settings.wishlistColor,
             mapBase = if (settings.useDarkTheme) {
-                lerp(settings.mapBaseColor, Cloud, 0.22f)
+                lerp(settings.mapBaseColor, Cloud, DarkThemeMapBaseBlend)
             } else {
-                settings.mapBaseColor
+                lerp(settings.mapBaseColor, Cloud, LightThemeMapBaseBlend)
             }
         )
     ) {
