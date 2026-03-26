@@ -1,6 +1,6 @@
 package com.hampu.wherehaveibeen
 
-import android.app.Application
+import android.content.ContextWrapper
 import com.google.common.truth.Truth.assertThat
 import com.hampu.wherehaveibeen.data.local.CountryAssetDataSource
 import com.hampu.wherehaveibeen.data.local.CountryDao
@@ -42,7 +42,7 @@ class OfflineFirstCountryRepositoryTest {
     }
 
     private fun fakeAssetDataSource(countries: List<CountrySeed>): CountryAssetDataSource {
-        return object : CountryAssetDataSource(Application()) {
+        return object : CountryAssetDataSource(object : ContextWrapper(null) {}) {
             override fun loadCountries(): List<CountrySeed> = countries
         }
     }
