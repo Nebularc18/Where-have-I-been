@@ -29,10 +29,11 @@ fun WhereHaveIBeenTheme(
     settings: AppSettings,
     content: @Composable () -> Unit
 ) {
+    val onPrimaryColor = if (settings.accentColor.luminance() > 0.5f) Night else Cloud
     val colors = if (settings.useDarkTheme) {
         darkColorScheme(
             primary = settings.accentColor,
-            onPrimary = Night,
+            onPrimary = onPrimaryColor,
             secondary = Steel,
             tertiary = settings.wishlistColor,
             background = Night,
@@ -45,7 +46,7 @@ fun WhereHaveIBeenTheme(
     } else {
         lightColorScheme(
             primary = settings.accentColor,
-            onPrimary = Cloud,
+            onPrimary = onPrimaryColor,
             secondary = Steel,
             tertiary = settings.wishlistColor,
             background = Cloud,

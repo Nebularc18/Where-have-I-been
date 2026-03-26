@@ -1,5 +1,7 @@
 package com.hampu.wherehaveibeen.ui.map
 
+import android.graphics.Rect
+import android.graphics.Region
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -15,12 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
@@ -29,18 +27,24 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.graphics.asAndroidPath
 import com.eltonkola.bota.Country
 import com.eltonkola.bota.WorldMapPaths
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.min
+
+private data class HitTestPath(
+    val path: Path,
+    val region: Region
+)
 
 private data class RenderableCountry(
     val id: String,
     val name: String,
-    val renderablePaths: List<Path>
+    val renderablePaths: List<HitTestPath>
 )
 
 @Composable
@@ -58,7 +62,9 @@ fun InteractiveWorldMap(
             RenderableCountry(
                 id = countryPath.id,
                 name = countryPath.name,
-                renderablePaths = countryPath.paths.map { PathParser().parsePathString(it).toPath() }
+                renderablePaths = countryPath.paths.map { pathData ->
+                    createHitTestPath(PathParser().parsePathString(pathData).toPath())
+                }
             )
         }
         if (countries.any { it.id == ANTARCTICA_ID }) {
@@ -67,7 +73,7 @@ fun InteractiveWorldMap(
             countries + RenderableCountry(
                 id = ANTARCTICA_ID,
                 name = "Antarctica",
-                renderablePaths = listOf(PathParser().parsePathString(ANTARCTICA_PATH_DATA).toPath())
+                renderablePaths = listOf(createHitTestPath(PathParser().parsePathString(ANTARCTICA_PATH_DATA).toPath()))
             )
         }
     }
@@ -145,8 +151,8 @@ fun InteractiveWorldMap(
                             y = (untransformedTap.y - paddingY) / fitScale
                         )
                         val clickedCountry = renderableCountries.asReversed().firstOrNull { country ->
-                            country.renderablePaths.any { path ->
-                                isPointInPath(svgPoint, path)
+                            country.renderablePaths.any { hitTestPath ->
+                                hitTestPath.region.contains(svgPoint.x.toInt(), svgPoint.y.toInt())
                             }
                         }
                         clickedCountry?.let { currentOnCountryClick(Country(id = it.id, name = it.name)) }
@@ -165,9 +171,9 @@ fun InteractiveWorldMap(
             }) {
                 renderableCountries.forEach { country ->
                     val fillColor = countryColors[country.id] ?: defaultColor
-                    country.renderablePaths.forEach { path ->
-                        drawPath(path = path, color = fillColor, style = Fill)
-                        drawPath(path = path, color = strokeColor, style = Stroke(width = 0.6f / fitScale))
+                    country.renderablePaths.forEach { hitTestPath ->
+                        drawPath(path = hitTestPath.path, color = fillColor, style = Fill)
+                        drawPath(path = hitTestPath.path, color = strokeColor, style = Stroke(width = 0.6f / fitScale))
                     }
                 }
             }
@@ -175,39 +181,18 @@ fun InteractiveWorldMap(
     }
 }
 
-private fun isPointInPath(point: Offset, path: Path): Boolean {
+private fun createHitTestPath(path: Path): HitTestPath {
     val bounds = path.getBounds()
-    val padding = 10f
-    val bitmapLeft = bounds.left - padding
-    val bitmapTop = bounds.top - padding
-    val bitmapWidth = (bounds.width + padding * 2).toInt().coerceAtLeast(1)
-    val bitmapHeight = (bounds.height + padding * 2).toInt().coerceAtLeast(1)
-    val bitmapX = (point.x - bitmapLeft).toInt()
-    val bitmapY = (point.y - bitmapTop).toInt()
-
-    if (bitmapX < 0 || bitmapX >= bitmapWidth || bitmapY < 0 || bitmapY >= bitmapHeight) {
-        return false
+    val clipBounds = Rect(
+        floor(bounds.left).toInt(),
+        floor(bounds.top).toInt(),
+        ceil(bounds.right).toInt().coerceAtLeast(floor(bounds.left).toInt() + 1),
+        ceil(bounds.bottom).toInt().coerceAtLeast(floor(bounds.top).toInt() + 1)
+    )
+    val region = Region().apply {
+        setPath(path.asAndroidPath(), Region(clipBounds))
     }
-
-    val bitmap = ImageBitmap(bitmapWidth, bitmapHeight)
-    val canvas = Canvas(bitmap)
-    val drawScope = CanvasDrawScope()
-    drawScope.draw(
-        density = Density(1f),
-        layoutDirection = LayoutDirection.Ltr,
-        canvas = canvas,
-        size = Size(bitmapWidth.toFloat(), bitmapHeight.toFloat())
-    ) {
-        drawRect(color = Color.Black, size = Size(bitmapWidth.toFloat(), bitmapHeight.toFloat()))
-        translate(-bitmapLeft, -bitmapTop) {
-            drawPath(path, Color.White)
-        }
-    }
-
-    val pixelBuffer = IntArray(1)
-    bitmap.readPixels(pixelBuffer, bitmapX, bitmapY, 1, 1)
-    val pixelColor = Color(pixelBuffer[0])
-    return pixelColor.red > 0.5f || pixelColor.green > 0.5f || pixelColor.blue > 0.5f
+    return HitTestPath(path = path, region = region)
 }
 
 private const val ANTARCTICA_ID = "AQ"
