@@ -1,10 +1,8 @@
 package com.hampu.wherehaveibeen.ui.map
 
-import android.graphics.Rect
-import android.graphics.Region
+import android.graphics.Matrix as AndroidMatrix
 import android.graphics.RectF
 import android.graphics.Region
-import android.graphics.Matrix as AndroidMatrix
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -25,20 +23,20 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.awaitPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.graphics.asAndroidPath
 import com.eltonkola.bota.Country
 import com.eltonkola.bota.WorldMapPaths
 import kotlin.math.abs
@@ -47,16 +45,11 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-
-private data class HitTestPath(
-    val path: Path,
-    val region: Region
-)
+import kotlin.math.sqrt
 
 private data class RenderableCountry(
     val id: String,
     val name: String,
-    val renderablePaths: List<HitTestPath>
     val renderablePaths: List<Path>,
     val hitRegions: List<Region>,
     val pathBounds: List<RectF>
@@ -78,9 +71,6 @@ fun InteractiveWorldMap(
             RenderableCountry(
                 id = countryPath.id,
                 name = countryPath.name,
-                renderablePaths = countryPath.paths.map { pathData ->
-                    createHitTestPath(PathParser().parsePathString(pathData).toPath())
-                }
                 renderablePaths = renderablePaths,
                 hitRegions = renderablePaths.map(::createRegionForPath),
                 pathBounds = renderablePaths.map(::computeBoundsForPath)
@@ -93,7 +83,6 @@ fun InteractiveWorldMap(
             countries + RenderableCountry(
                 id = ANTARCTICA_ID,
                 name = "Antarctica",
-                renderablePaths = listOf(createHitTestPath(PathParser().parsePathString(ANTARCTICA_PATH_DATA).toPath()))
                 renderablePaths = listOf(antarcticaPath),
                 hitRegions = listOf(createRegionForPath(antarcticaPath)),
                 pathBounds = listOf(computeBoundsForPath(antarcticaPath))
@@ -119,7 +108,7 @@ fun InteractiveWorldMap(
             modifier
                 .clipToBounds()
                 .onSizeChanged { canvasSize = it }
-                .pointerInput(renderableCountries, interactive, canvasSize) {
+                .pointerInput(renderableCountries, canvasSize, scale, offset) {
                     awaitEachGesture {
                         val firstDown = awaitFirstDown(requireUnconsumed = false)
                         var gestureScale = scale
@@ -206,30 +195,6 @@ fun InteractiveWorldMap(
                     translationY = offset.y,
                     transformOrigin = TransformOrigin.Center
                 )
-                .pointerInput(Unit) {
-                    detectTapGestures { tapOffset ->
-                        if (canvasSize == IntSize.Zero) return@detectTapGestures
-                        val fitScale = min(canvasSize.width / svgWidth, canvasSize.height / svgHeight)
-                        val scaledSvgWidth = svgWidth * fitScale
-                        val scaledSvgHeight = svgHeight * fitScale
-                        val paddingX = (canvasSize.width - scaledSvgWidth) / 2f
-                        val paddingY = (canvasSize.height - scaledSvgHeight) / 2f
-                        val untransformedTap = Offset(
-                            x = (tapOffset.x - offset.x) / scale,
-                            y = (tapOffset.y - offset.y) / scale
-                        )
-                        val svgPoint = Offset(
-                            x = (untransformedTap.x - paddingX) / fitScale,
-                            y = (untransformedTap.y - paddingY) / fitScale
-                        )
-                        val clickedCountry = renderableCountries.asReversed().firstOrNull { country ->
-                            country.renderablePaths.any { hitTestPath ->
-                                hitTestPath.region.contains(svgPoint.x.toInt(), svgPoint.y.toInt())
-                            }
-                        }
-                        clickedCountry?.let { currentOnCountryClick(Country(id = it.id, name = it.name)) }
-                    }
-                }
         ) {
             val fitScale = min(size.width / svgWidth, size.height / svgHeight)
             val scaledSvgWidth = svgWidth * fitScale
@@ -243,9 +208,9 @@ fun InteractiveWorldMap(
             }) {
                 renderableCountries.forEach { country ->
                     val fillColor = countryColors[country.id] ?: defaultColor
-                    country.renderablePaths.forEach { hitTestPath ->
-                        drawPath(path = hitTestPath.path, color = fillColor, style = Fill)
-                        drawPath(path = hitTestPath.path, color = strokeColor, style = Stroke(width = 0.6f / fitScale))
+                    country.renderablePaths.forEach { path ->
+                        drawPath(path = path, color = fillColor, style = Fill)
+                        drawPath(path = path, color = strokeColor, style = Stroke(width = 0.6f / fitScale))
                     }
                 }
             }
@@ -253,18 +218,6 @@ fun InteractiveWorldMap(
     }
 }
 
-private fun createHitTestPath(path: Path): HitTestPath {
-    val bounds = path.getBounds()
-    val clipBounds = Rect(
-        floor(bounds.left).toInt(),
-        floor(bounds.top).toInt(),
-        ceil(bounds.right).toInt().coerceAtLeast(floor(bounds.left).toInt() + 1),
-        ceil(bounds.bottom).toInt().coerceAtLeast(floor(bounds.top).toInt() + 1)
-    )
-    val region = Region().apply {
-        setPath(path.asAndroidPath(), Region(clipBounds))
-    }
-    return HitTestPath(path = path, region = region)
 private fun findCountryForTap(
     tapOffset: Offset,
     canvasSize: IntSize,
@@ -309,11 +262,12 @@ private fun transformedOffset(
     pan: Offset,
     canvasSize: IntSize
 ): Offset {
+    val scaleFactor = newScale / currentScale
     val pivotX = centroid.x - canvasSize.width / 2f
     val pivotY = centroid.y - canvasSize.height / 2f
     val newOffset = Offset(
-        x = currentOffset.x * (newScale / currentScale) - pivotX * ((newScale / currentScale) - 1f) + pan.x,
-        y = currentOffset.y * (newScale / currentScale) - pivotY * ((newScale / currentScale) - 1f) + pan.y
+        x = currentOffset.x * scaleFactor - pivotX * (scaleFactor - 1f) + pan.x,
+        y = currentOffset.y * scaleFactor - pivotY * (scaleFactor - 1f) + pan.y
     )
     return clampOffset(newOffset, newScale, canvasSize)
 }
@@ -343,7 +297,6 @@ private fun findCountryAtPoint(
             region.contains(point.x.roundToInt(), point.y.roundToInt())
         }
     }
-
     if (exactMatch != null) return exactMatch
 
     return countries.asReversed()
@@ -351,11 +304,7 @@ private fun findCountryAtPoint(
             val distance = country.pathBounds.minOfOrNull { bounds ->
                 distanceToRect(point, bounds)
             } ?: return@mapNotNull null
-            if (distance <= fallbackRadius) {
-                country to distance
-            } else {
-                null
-            }
+            if (distance <= fallbackRadius) country to distance else null
         }
         .minByOrNull { it.second }
         ?.first
@@ -404,7 +353,7 @@ private fun distanceToRect(point: Offset, rect: RectF): Float {
         point.y > rect.bottom -> point.y - rect.bottom
         else -> 0f
     }
-    return kotlin.math.sqrt(dx * dx + dy * dy)
+    return sqrt(dx * dx + dy * dy)
 }
 
 private const val ANTARCTICA_ID = "AQ"
