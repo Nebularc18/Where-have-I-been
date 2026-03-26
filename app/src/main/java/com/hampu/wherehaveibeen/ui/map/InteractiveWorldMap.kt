@@ -32,7 +32,6 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.awaitPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.onSizeChanged
@@ -108,7 +107,7 @@ fun InteractiveWorldMap(
             modifier
                 .clipToBounds()
                 .onSizeChanged { canvasSize = it }
-                .pointerInput(renderableCountries, canvasSize, scale, offset) {
+                .pointerInput(renderableCountries, interactive, canvasSize) {
                     awaitEachGesture {
                         val firstDown = awaitFirstDown(requireUnconsumed = false)
                         var gestureScale = scale
@@ -246,7 +245,11 @@ private fun findCountryForTap(
         x = (untransformedTap.x - paddingX) / fitScale,
         y = (untransformedTap.y - paddingY) / fitScale
     )
-    val fallbackRadius = 24f / (fitScale * scale).coerceAtLeast(0.01f)
+    val fallbackRadius = if (scale > 1.15f) {
+        0f
+    } else {
+        12f / fitScale.coerceAtLeast(0.01f)
+    }
     return findCountryAtPoint(
         countries = countries,
         point = svgPoint,
@@ -298,6 +301,7 @@ private fun findCountryAtPoint(
         }
     }
     if (exactMatch != null) return exactMatch
+    if (fallbackRadius <= 0f) return null
 
     return countries.asReversed()
         .mapNotNull { country ->

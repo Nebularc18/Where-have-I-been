@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hampu.wherehaveibeen.data.repository.normalizeCountryCode
 import com.hampu.wherehaveibeen.ui.components.EmptyContent
-import com.hampu.wherehaveibeen.ui.components.HeaderHighlight
 import com.hampu.wherehaveibeen.ui.components.ScreenHeader
 import com.hampu.wherehaveibeen.ui.theme.LocalAppColorTokens
 
@@ -77,17 +76,7 @@ fun MapScreen(
     ) {
         ScreenHeader(
             title = "Visited ${uiState.stats.visitedCountries} of ${uiState.stats.totalCountries}",
-            subtitle = "${(uiState.stats.visitedPercentage * 100).toInt()}% of your curated world map",
-            highlights = listOf(
-                HeaderHighlight(
-                    label = "Countries",
-                    value = "${uiState.stats.visitedCountries}/${uiState.stats.totalCountries}"
-                ),
-                HeaderHighlight(
-                    label = "Continents",
-                    value = "${uiState.stats.visitedContinents}/${uiState.stats.totalContinents} (${(uiState.stats.visitedContinentsPercentage * 100).toInt()}%)"
-                )
-            )
+            subtitle = "${(uiState.stats.visitedPercentage * 100).toInt()}% of your curated world map"
         )
 
         uiState.errorMessage?.let { message ->
